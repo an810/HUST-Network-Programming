@@ -38,6 +38,9 @@ public:
     bool changeDir(const char* dir) { return Directory::changeDir(sock, dir); }
     bool uploadFile(const char* filename) { return FileHandler::uploadFile(sock, filename); }
     bool downloadFile(const char* filename) { return FileHandler::downloadFile(sock, filename); }
+    bool createFolder(const char* name) { return Directory::createFolder(sock, name); }
+    bool deleteFolder(const char* name) { return Directory::deleteFolder(sock, name); }
+    bool renameFolder(const char* old, const char* newName) { return Directory::renameFolder(sock, old, newName); }
 
     ~Client() {
         if (isConnected) close(sock);
@@ -83,9 +86,12 @@ int main() {
              << "2. Change directory\n"
              << "3. Upload file\n"
              << "4. Download file\n"
-             << "5. Logout\n"
-             << "6. Exit\n"
-             << "Choose option (1-6): ";
+             << "5. Create folder\n"
+             << "6. Delete folder\n"
+             << "7. Rename folder\n"
+             << "8. Logout\n"
+             << "9. Exit\n"
+             << "Choose option (1-9): ";
 
         cin >> command;
 
@@ -112,8 +118,40 @@ int main() {
                 cout << "Download successful\n";
             }
         }
-        else if (command == "5") loggedIn = false;
-        else if (command == "6") break;
+        else if (command == "5") {
+            string name;
+            cout << "Enter folder name: ";
+            cin >> name;
+            if (client.createFolder(name.c_str())) {
+                cout << "Folder created successfully\n";
+            } else {
+                cout << "Failed to create folder\n";
+            }
+        }
+        else if (command == "6") {
+            string name;
+            cout << "Enter folder name: ";
+            cin >> name;
+            if (client.deleteFolder(name.c_str())) {
+                cout << "Folder deleted successfully\n";
+            } else {
+                cout << "Failed to delete folder\n";
+            }
+        }
+        else if (command == "7") {
+            string oldName, newName;
+            cout << "Enter current folder name: ";
+            cin >> oldName;
+            cout << "Enter new folder name: ";
+            cin >> newName;
+            if (client.renameFolder(oldName.c_str(), newName.c_str())) {
+                cout << "Folder renamed successfully\n";
+            } else {
+                cout << "Failed to rename folder\n";
+            }
+        }
+        else if (command == "8") loggedIn = false;
+        else if (command == "9") break;
         else cout << "Invalid option\n";
     }
     return 0;

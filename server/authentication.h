@@ -17,11 +17,7 @@ public:
         char id[6], pass[25];
         sscanf(msg.payload, "%s %s", id, pass);
 
-        std::cout << id << std::endl
-            << pass << std::endl;
         for (auto& acc : accounts) {
-            std::cout << acc.id << std::endl
-              << acc.pass << std::endl;
             if (strcmp(acc.id, id) == 0) {
                 if (strcmp(acc.pass, pass) == 0) {
                     acc.sock = sock;

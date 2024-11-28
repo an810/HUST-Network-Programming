@@ -19,4 +19,31 @@ public:
         recv(sock, &msg, sizeof(Message), 0);
         return true;
     }
+
+    static bool createFolder(int sock, const char* name) {
+        Message msg;
+        msg.opcode = CREATE_FOLDER;
+        strcpy(msg.payload, name);
+        send(sock, &msg, sizeof(Message), 0);
+        recv(sock, &msg, sizeof(Message), 0);
+        return msg.opcode == CREATE_FOLDER_SUCCESS;
+    }
+
+    static bool deleteFolder(int sock, const char* name) {
+        Message msg;
+        msg.opcode = DELETE_FOLDER;
+        strcpy(msg.payload, name);
+        send(sock, &msg, sizeof(Message), 0);
+        recv(sock, &msg, sizeof(Message), 0);
+        return msg.opcode == CREATE_FOLDER_SUCCESS;
+    }
+
+    static bool renameFolder(int sock, const char* oldName, const char* newName) {
+        Message msg;
+        msg.opcode = RENAME_FOLDER;
+        snprintf(msg.payload, PAYLOAD_SIZE, "%s %s", oldName, newName);
+        send(sock, &msg, sizeof(Message), 0);
+        recv(sock, &msg, sizeof(Message), 0);
+        return msg.opcode == CREATE_FOLDER_SUCCESS;
+    }
 };

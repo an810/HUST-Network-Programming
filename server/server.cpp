@@ -31,9 +31,19 @@ void* clientHandler(void* arg) {
             case LIST_FILES:
                 Directory::listFiles(client.currentDir, msg.payload);
                 break;
+            case CREATE_FOLDER:
+                Directory::createDirectory(msg);
+                break;
+            case DELETE_FOLDER:
+                Directory::deleteDirectory(msg);
+                break;
+            case RENAME_FOLDER:
+                Directory::renameDirectory(msg);
+                break;
             case UPLOAD:
             case DOWNLOAD:
             case DATA_UP:
+            case DATA_DOWN:
                 FileHandler::handleFileTransfer(sock, msg, clients);
                 break;
         }

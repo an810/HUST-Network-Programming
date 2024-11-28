@@ -34,5 +34,12 @@ enum OpCodes {
     DATA_UP = 32,
     DATA_DOWN = 33,
     LIST_FILES = 34,
-    CHANGE_DIR = 39
+    CHANGE_DIR = 39,
+
+    CREATE_FOLDER = 40,
+    DELETE_FOLDER = 41,
+    RENAME_FOLDER = 42,
+
+    CREATE_FOLDER_SUCCESS = 140,
+    FOLDER_ERROR = 143
 };

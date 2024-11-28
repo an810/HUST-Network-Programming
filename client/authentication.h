@@ -7,7 +7,6 @@ public:
         Message msg;
         msg.opcode = LOGIN;
         snprintf(msg.payload, PAYLOAD_SIZE, "%s %s", id, pass);
-        std::cout << msg.payload;
         send(sock, &msg, sizeof(Message), 0);
         recv(sock, &msg, sizeof(Message), 0);
 
