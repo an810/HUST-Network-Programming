@@ -30,5 +30,6 @@ public:
             }
         }
         msg.opcode = ID_NOT_FOUND;
+        send(sock, &msg, sizeof(Message), 0);
     }
 };

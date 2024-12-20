@@ -9,7 +9,7 @@ public:
         snprintf(msg.payload, PAYLOAD_SIZE, "%s %s", id, pass);
         send(sock, &msg, sizeof(Message), 0);
         recv(sock, &msg, sizeof(Message), 0);
-
+        
         return msg.opcode == LOGIN_SUCCESS;
     }
 };

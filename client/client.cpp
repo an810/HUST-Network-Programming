@@ -3,6 +3,8 @@
 #include "directory.h"
 #include "file.h"
 
+using namespace std;
+
 class Client {
 private:
     int sock;
@@ -41,7 +43,10 @@ public:
     bool createFolder(const char* name) { return Directory::createFolder(sock, name); }
     bool deleteFolder(const char* name) { return Directory::deleteFolder(sock, name); }
     bool renameFolder(const char* old, const char* newName) { return Directory::renameFolder(sock, old, newName); }
-
+    bool deleteFile(const char* filename) { return FileHandler::deleteFile(sock, filename); }
+    bool uploadFolder(const char* folder) { return Directory::uploadFolder(sock, folder); }
+    bool downloadFolder(const char* folder) { return Directory::downloadFolder(sock, folder); }
+    bool searchFile(const char* filename) { return FileHandler::searchFile(sock, filename); }
     ~Client() {
         if (isConnected) close(sock);
     }
@@ -88,9 +93,13 @@ int main() {
              << "4. Download file\n"
              << "5. Create folder\n"
              << "6. Delete folder\n"
-             << "7. Rename folder\n"
-             << "8. Logout\n"
-             << "9. Exit\n"
+             << "7. Rename file/folder\n"
+             << "8. Delete file\n"
+             << "9. Upload folder\n"
+             << "10. Download folder\n"
+             << "11. Search file\n"
+             << "15. Logout\n"
+             << "0. Exit\n"
              << "Choose option (1-9): ";
 
         cin >> command;
@@ -100,7 +109,11 @@ int main() {
             string dir;
             cout << "Enter directory: ";
             cin >> dir;
-            client.changeDir(dir.c_str());
+            if (client.changeDir(dir.c_str())) {
+                cout << "Directory changed successfully\n";
+            } else {
+                cout << "Failed to change directory\n";
+            }
         }
         else if (command == "3") {
             string filename;
@@ -116,6 +129,8 @@ int main() {
             cin >> filename;
             if (client.downloadFile(filename.c_str())) {
                 cout << "Download successful\n";
+            } else {
+                cout << "Failed to download file\n";
             }
         }
         else if (command == "5") {
@@ -140,18 +155,58 @@ int main() {
         }
         else if (command == "7") {
             string oldName, newName;
-            cout << "Enter current folder name: ";
+            cout << "Enter current file/folder name: ";
             cin >> oldName;
-            cout << "Enter new folder name: ";
+            cout << "Enter new file/folder name: ";
             cin >> newName;
             if (client.renameFolder(oldName.c_str(), newName.c_str())) {
-                cout << "Folder renamed successfully\n";
+                cout << "File/Folder renamed successfully\n";
             } else {
-                cout << "Failed to rename folder\n";
+                cout << "Failed to rename file/folder\n";
             }
         }
-        else if (command == "8") loggedIn = false;
-        else if (command == "9") break;
+        else if (command == "8") {
+            string filename;
+            cout << "Enter filename: ";
+            cin >> filename;
+            if (client.deleteFile(filename.c_str())) {
+                cout << "File deleted successfully\n";
+            } else {
+                cout << "Failed to delete file\n";
+            }
+        }
+        else if (command == "9") {
+            string folder;
+            cout << "Enter folder name: ";
+            cin >> folder;
+            if (client.uploadFolder(folder.c_str())) {
+                cout << "Folder uploaded successfully\n";
+            } else {
+                cout << "Failed to upload folder\n";
+            }
+        }
+        else if (command == "10") {
+            string folder;
+            cout << "Enter folder name: ";
+            cin >> folder;
+            if (client.downloadFolder(folder.c_str())) {
+                cout << "Folder downloaded successfully\n";
+            } else {
+                cout << "Failed to download folder\n";
+            }
+        }
+        else if (command == "11") {
+            string filename;
+            cout << "Enter filename: ";
+            cin >> filename;
+            if (client.searchFile(filename.c_str())) {
+                cout << "File found\n";
+            } else {
+                cout << "File not found\n";
+            }
+        }
+        else if (command == "15") loggedIn = false;
+        else if (command == "0") break;
         else cout << "Invalid option\n";
     }
     return 0;

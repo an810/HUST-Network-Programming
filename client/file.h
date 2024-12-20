@@ -3,8 +3,33 @@
 
 class FileHandler {
 public:
+    static bool deleteFile(int sock, const char* filename) {
+        Message msg;
+        msg.opcode = DELETE_FILE;
+        strcpy(msg.payload, filename);
+
+        send(sock, &msg, sizeof(Message), 0);
+        recv(sock, &msg, sizeof(Message), 0);
+
+        std::cout << "Server response: " << msg.opcode << std::endl;
+        return msg.opcode == DELETE_FILE_SUCCESS;
+    }
+
+    static bool searchFile(int sock, const char* filename) {
+        Message msg;
+        msg.opcode = SEARCH_FILE;
+        strcpy(msg.payload, filename);
+
+        send(sock, &msg, sizeof(Message), 0);
+        recv(sock, &msg, sizeof(Message), 0);
+
+        std::cout << "Server response: " << msg.opcode << std::endl;
+        std::cout << "File found at: " << msg.payload << std::endl;
+        return msg.opcode == SEARCH_FILE_SUCCESS;
+    }
+
     static bool uploadFile(int sock, const char* filename) {
-        string filepath = string(CLIENT_FOLDER) + "/" + filename;
+        std::string filepath = std::string(CLIENT_FOLDER) + "/" + filename;
         FILE* file = fopen(filepath.c_str(), "rb");
         if (!file) return false;
 
@@ -33,10 +58,13 @@ public:
         }
 
         fclose(file);
-        return true;
+        // recv(sock, &msg, sizeof(Message), 0);
+        std::cout << "Server response - uploadFile: " << msg.opcode << std::endl;
+        return msg.opcode == DATA_UP;
     }
 
     static bool downloadFile(int sock, const char* filename) {
+        std::cout << "Downloading file: " << filename << std::endl;
         Message msg;
         msg.opcode = DOWNLOAD;
         strcpy(msg.payload, filename);
@@ -45,7 +73,7 @@ public:
         recv(sock, &msg, sizeof(Message), 0);
         if (msg.opcode != DATA_DOWN) return false;
 
-        string filepath = string(CLIENT_FOLDER) + "/" + filename;
+        std::string filepath = std::string(CLIENT_FOLDER) + "/" + filename;
         FILE* file = fopen(filepath.c_str(), "wb");
         if (!file) return false;
 
@@ -58,7 +86,9 @@ public:
             recv(sock, &msg, sizeof(Message), 0);
         } while (msg.length > 0);
 
-        fclose(file);
-        return true;
+        fclose(file);   
+        recv(sock, &msg, sizeof(Message), 0);
+        std::cout << "Server response: " << msg.opcode << std::endl;
+        return msg.opcode == DOWNLOAD_SUCCESS;
     }
 };
