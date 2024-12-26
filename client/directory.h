@@ -66,12 +66,10 @@ public:
         std::cout << "Start downloading folder: " << folderPath << std::endl;
         Message msg;
 
-        // Notify server to start downloading the folder
         msg.opcode = DOWNLOAD;
         strcpy(msg.payload, folderPath);
         send(sock, &msg, sizeof(Message), 0);
 
-        // Wait for server response
         recv(sock, &msg, sizeof(Message), 0);
         if (msg.opcode == PERMISSION_DENIED) {
             std::cout << "PERMISSION DENIED!" << std::endl;
@@ -81,24 +79,23 @@ public:
 
         if (msg.opcode == FOLDER_NOT_FOUND) return false;
 
-        std::string fullPath(CLIENT_FOLDER);
-        fullPath += "/";
-        fullPath += folderPath;
+        // Base path for the downloaded folder
+        std::string basePath = std::string(CLIENT_FOLDER) + "/" + folderPath;
+        std::string currentPath = basePath;  // Keep track of current working directory
 
         // Create the folder locally
         if (msg.opcode == CREATE_FOLDER) {
-            mkdir(fullPath.c_str(), 0777);
-            std::cout << "Creating folder: " << fullPath << std::endl;
+            mkdir(basePath.c_str(), 0777);
+            std::cout << "Creating folder: " << basePath << std::endl;
         }
 
         while (true) {
             recv(sock, &msg, sizeof(Message), 0);
-
             std::cout << "Server response: " << msg.opcode << " - " << msg.payload << std::endl;
 
             if (msg.opcode == DOWNLOAD_SUCCESS) {
                 std::cout << "Finished downloading folder: " << folderPath << std::endl;
-                break;  // Folder download complete
+                break;
             }
 
             if (msg.opcode == FOLDER_NOT_FOUND || msg.opcode == FILE_NOT_FOUND) {
@@ -107,45 +104,45 @@ public:
             }
 
             if (msg.opcode == CREATE_FOLDER) {
-                // Handle subfolder
-                std::string subFolderPath = fullPath + "/" + msg.payload;
-                std::cout << "Creating subfolder: " << subFolderPath << std::endl;
-                mkdir(subFolderPath.c_str(), 0777);
-
-                // Recursively download the subfolder
-                fullPath += "/";
-                fullPath += msg.payload;
-                std::cout << "Download Folder - Subfolder: " << fullPath << std::endl;
-                // std::string nextPath = std::string(folderPath) + "/" + msg.payload;
-                // downloadFolder(sock, nextPath.c_str());
-            } else if (msg.opcode == DATA_DOWN) {
-                // Handle file download
-                
-                std::string filePath = fullPath + "/" + msg.payload;
+                // Update current path for the new subfolder
+                currentPath = basePath + "/" + msg.payload;
+                std::cout << "Creating subfolder: " << currentPath << std::endl;
+                mkdir(currentPath.c_str(), 0777);
+            }
+            else if (msg.opcode == DATA_DOWN) {
+                // Use current path to save file in the correct subfolder
+                std::string filePath = currentPath + "/" + msg.payload;
                 std::cout << "Downloading file: " << filePath << std::endl;
 
-                // get the file content
                 recv(sock, &msg, sizeof(Message), 0);
-            
+
                 FILE* file = fopen(filePath.c_str(), "wb");
                 if (!file) return false;
 
                 std::cout << "Server response: " << msg.opcode << std::endl;
-                if (msg.opcode != DATA_DOWN) return false;
+                if (msg.opcode != DATA_DOWN) {
+                    fclose(file);
+                    return false;
+                }
 
                 do {
                     std::cout << "Start write file" << std::endl;
                     fwrite(msg.payload, 1, msg.length, file);
                     if (msg.length < PAYLOAD_SIZE) break;
-                
+
                     msg.opcode = DATA_DOWN;
                     send(sock, &msg, sizeof(Message), 0);
                     recv(sock, &msg, sizeof(Message), 0);
                 } while (msg.length > 0);
 
                 fclose(file);
-            } else
+
+                // Reset current path back to base after file download
+                currentPath = basePath;
+            }
+            else {
                 return false;
+            }
         }
         return true;
     }
