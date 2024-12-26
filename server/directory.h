@@ -1,5 +1,6 @@
 #pragma once
 #include "resource.h"
+#include "file.h"
 
 class Directory {
 public:
@@ -72,6 +73,8 @@ public:
         snprintf(path, sizeof(path), "%s/%s", client.currentDir, msg.payload);
         if (mkdir(path, 0777) == 0) {
             msg.opcode = CREATE_FOLDER_SUCCESS;
+            std::string message = "Created folder " + std::string(path);
+            FileHandler::addToLog(message.c_str(), client.userId);
         } else {
             msg.opcode = FOLDER_ALREADY_EXIST;
         }
@@ -85,7 +88,6 @@ public:
         if (!dir) {
             std::cout << "Directory not found: " << path << std::endl;
             msg.opcode = FOLDER_NOT_FOUND;
-            send(client.socket, &msg, sizeof(msg), 0);
             return;
         }
 
@@ -97,13 +99,16 @@ public:
             }
 
             std::string entryPath = std::string(path) + "/" + entry->d_name;
-
+            std::cout << "Deleting entryName: " << entry->d_name << std::endl;
+            std::cout << "Deleting entryPath: " << entryPath << std::endl;
             struct stat entryStat;
             if (stat(entryPath.c_str(), &entryStat) == 0) {
                 if (S_ISDIR(entryStat.st_mode)) {
                     // If it's a directory, recursively delete its contents
                     Message subMsg;
-                    strcpy(subMsg.payload, entry->d_name);
+                    std::string relativePath = entryPath.substr(strlen(client.currentDir) + 1); // +1 to skip the '/'
+                    strcpy(subMsg.payload, relativePath.c_str());
+                    // strcpy(subMsg.payload, entryPath.c_str());
                     deleteDirectory(client, subMsg); // Recursive call to delete subdirectory
                 } else {
                     // If it's a file, delete it
@@ -121,14 +126,13 @@ public:
         // After deleting all files and subdirectories, remove the directory itself
         if (rmdir(path) == 0) {
             std::cout << "Deleted folder: " << path << std::endl;
+            std::string message = "Deleted folder " + std::string(path);
+            FileHandler::addToLog(message.c_str(), client.userId);
             msg.opcode = DELETE_FOLDER_SUCCESS;
         } else {
             std::cout << "Failed to delete folder: " << path << std::endl;
             msg.opcode = FOLDER_NOT_FOUND;
         }
-
-        // // Send the response back to the client
-        // send(client.socket, &msg, sizeof(msg), 0);
     }
 
     static void renameDirectory(ClientInfo& client, Message& msg) {
@@ -141,6 +145,8 @@ public:
 
         if (rename(oldPath, newPath) == 0) {
             msg.opcode = CREATE_FOLDER_SUCCESS;
+            std::string message = "Renamed folder " + std::string(oldPath) + " to " + std::string(newPath);
+            FileHandler::addToLog(message.c_str(), client.userId);
         } else {
             msg.opcode = FOLDER_NOT_FOUND;
         }

@@ -13,7 +13,7 @@ public:
         file.close();
     }
 
-    static void handleLogin(int sock, Message& msg, std::vector<Account>& accounts) {
+    static void handleLogin(int sock, Message& msg, std::vector<Account>& accounts, ClientInfo& client) {
         char id[6], pass[25];
         sscanf(msg.payload, "%s %s", id, pass);
 
@@ -22,6 +22,7 @@ public:
                 if (strcmp(acc.pass, pass) == 0) {
                     acc.sock = sock;
                     acc.status = 1;
+                    strcpy(client.userId, acc.user);
                     msg.opcode = LOGIN_SUCCESS;
                     return;
                 }
@@ -30,6 +31,5 @@ public:
             }
         }
         msg.opcode = ID_NOT_FOUND;
-        send(sock, &msg, sizeof(Message), 0);
     }
 };

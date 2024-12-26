@@ -3,19 +3,33 @@
 
 class FileHandler {
 public:
+    static void addToLog(const char* message, const char* userId) {
+        std::ofstream logFile("log.txt", std::ios::app);
+        if (logFile.is_open()) {
+            time_t rawtime = time(NULL);
+	        tm* ptm = localtime(&rawtime);
+            char* currentTime = (char*)malloc(sizeof(char) * 100);;
+            strftime(currentTime, 100, "%d/%m/%y\t%H:%M:%S", ptm);
+            logFile << currentTime << "\t" << message << "\t" << userId << std::endl;
+            logFile.close();
+            free(currentTime);
+        }
+    }
+    
     static void handleDelete(ClientInfo& client, Message& msg) {
         std::cout << "Delete file - Client current dir: " << client.currentDir << std::endl;
         std::string filepath = std::string(client.currentDir) + "/" + msg.payload;
         std::cout << "Delete file - Filepath: " << filepath << std::endl;
         if (remove(filepath.c_str()) == 0) {
             msg.opcode = DELETE_FILE_SUCCESS;
+            std::string message = "Delete file " + filepath;
+            addToLog(message.c_str(), client.userId);
             std::cout << "Delete file - File deleted successfully " << msg.opcode << std::endl;
         } else {
             msg.opcode = FILE_NOT_FOUND;
             std::cout << "Delete file - File not found " << msg.opcode << std::endl;
         }
 
-        send(client.socket, &msg, sizeof(msg), 0);
     }
 
 
@@ -70,26 +84,28 @@ public:
                 // // Send upload success message
                 // send(client.socket, &msg, sizeof(msg), 0);
                 // msg.opcode = UPLOAD_SUCCESS;
+                std::string message = "Upload file " + std::string(client.filename);
+                addToLog(message.c_str(), client.userId);
             }
         }
     }
 
-    static void handleDownload(ClientInfo& client, Message& msg) {
-        std::string filepath = std::string(client.currentDir) + "/" + msg.payload;
-        client.file = fopen(filepath.c_str(), "rb");
-        if (client.file) {
-            fseek(client.file, 0, SEEK_END);
-            client.fileSize = ftell(client.file);
-            client.bytesLeft = client.fileSize;
-            rewind(client.file);
-            strcpy(client.filename, msg.payload);
+    // static void handleDownload(ClientInfo& client, Message& msg) {
+    //     std::string filepath = std::string(client.currentDir) + "/" + msg.payload;
+    //     client.file = fopen(filepath.c_str(), "rb");
+    //     if (client.file) {
+    //         fseek(client.file, 0, SEEK_END);
+    //         client.fileSize = ftell(client.file);
+    //         client.bytesLeft = client.fileSize;
+    //         rewind(client.file);
+    //         strcpy(client.filename, msg.payload);
 
-            msg.opcode = DATA_DOWN;
-            handleDataDown(client, msg);
-        } else {
-            msg.opcode = FILE_NOT_FOUND;
-        }
-    }
+    //         msg.opcode = DATA_DOWN;
+    //         handleDataDown(client, msg);
+    //     } else {
+    //         msg.opcode = FILE_NOT_FOUND;
+    //     }
+    // }
 
     static bool isDirectory(const char* path) {
         struct stat st;
@@ -100,87 +116,10 @@ public:
         return false;
     }
 
-    
-
-
-    static void handleFolderDownload(ClientInfo& client, Message& msg) {
-        std::string targetPath = msg.payload;
-        std::string path = std::string(client.currentDir) + "/" + targetPath;
-
-        struct stat st;
-        if (stat(path.c_str(), &st) != 0) {
-            msg.opcode = FILE_NOT_FOUND;
-            send(client.socket, &msg, sizeof(msg), 0);
-            return;
-        }
-
-        // Check if the path is a directory or a file
-        if (S_ISDIR(st.st_mode)) {
-            // It's a directory, we need to send folder structure
-            std::cout << "Create folder in client side" << std::endl;
-            msg.opcode = CREATE_FOLDER;
-            send(client.socket, &msg, sizeof(msg), 0);
-
-            // Send files and subdirectories recursively
-            DIR* dir = opendir(path.c_str());
-            if (dir == nullptr) {
-                std::cout << "Folder is empty" << std::endl; 
-                msg.opcode = FOLDER_NOT_FOUND;
-                send(client.socket, &msg, sizeof(msg), 0);
-                return;
-            }
-
-            struct dirent* entry;
-            while ((entry = readdir(dir)) != nullptr) {
-                if (strcmp(entry->d_name, ".") != 0 && strcmp(entry->d_name, "..") != 0) {
-                    std::string filePath = path + "/" + entry->d_name;
-                    std::cout << "Handle Download - filePath: " << filePath << std::endl;
-                    std::cout << "Handle Download - entry file name: " << entry->d_name << std::endl;
-                    std::string nextPath = targetPath + "/" + entry->d_name;
-                    if (isDirectory(filePath.c_str())) {
-                        // Recursively handle subfolders
-                        strcpy(msg.payload, nextPath.c_str());
-                        std::cout << "Handle Download - recursive download subfolder" << std::endl;
-                        handleDownload(client, msg); // Recursive call to handle subfolder
-                    } else {
-                        // Handle file download for each file in the directory
-                        strcpy(msg.payload, nextPath.c_str());
-                        std::cout << "Handle Download - download file" << std::endl;
-                        if (!handleFileDownload(client, msg)) {
-                            msg.opcode = FILE_NOT_FOUND;
-                            return;
-                        } 
-                    }
-                }
-            }
-            std::cout << "Handle Download - close directory" << std::endl;
-            closedir(dir);
-        } else {
-            // It's a file, send the file to the client
-            std::cout << "Handle Download - It's a file, send the file to the client" << std::endl;
-            if (!handleFileDownload(client, msg)) {
-                msg.opcode = FILE_NOT_FOUND;
-            }
-        }
-    }
-
-    // static void handleFileInFolderDownload(ClientInfo& client, Message& msg) {
-    //     std::string filepath = std::string(client.currentDir) + "/" + msg.payload;
-    //     client.file = fopen(filepath.c_str(), "rb");
-    //     if (client.file) {
-    //         fseek(client.file, 0, SEEK_END);
-    //         client.fileSize = ftell(client.file);
-    //         client.bytesLeft = client.fileSize;
-    //         rewind(client.file);
-    //         strcpy(client.filename, msg.payload);
-    //     }
-    // }
-
-    static bool handleFileDownload(ClientInfo& client, Message& msg) {
-        std::string filepath = std::string(client.currentDir) + "/" + msg.payload;
-        client.file = fopen(filepath.c_str(), "rb");
-        
-        std::cout << "Handle File Download - Filepath: " << filepath << std::endl;
+    // This function will be responsible for handling the file download
+    static void handleFileDownload(ClientInfo& client, const std::string& filePath, Message& msg) {
+        std::cout << "Handle File Download - File Path: " << filePath << std::endl;
+        client.file = fopen(filePath.c_str(), "rb");
         if (client.file) {
             fseek(client.file, 0, SEEK_END);
             client.fileSize = ftell(client.file);
@@ -188,18 +127,68 @@ public:
             rewind(client.file);
             strcpy(client.filename, msg.payload);
             
-            // Start sending file in chunks
+            std::cout << "Handle File Download - PayLoad: " << msg.payload << std::endl;
+
             msg.opcode = DATA_DOWN;
-            std::cout << "Handle File Download - Start sending file in chunks" << std::endl;
             handleDataDown(client, msg);
-            std::cout << "Handle File Download - End sending file in chunks" << std::endl;
-            send(client.socket, &msg, sizeof(msg), 0);
-            return true;
         } else {
-            send(client.socket, &msg, sizeof(msg), 0);
-            return false;
+            msg.opcode = FILE_NOT_FOUND;  
         }
     }
+
+    static void handleFolderDownload(ClientInfo& client, const std::string& folderPath, Message& msg) {
+        DIR* dir = opendir(folderPath.c_str());
+        if (!dir) {
+            msg.opcode = FOLDER_NOT_FOUND;
+            // send(client.socket, &msg, sizeof(msg), 0);  // Folder doesn't exist
+            return;
+        }
+
+        msg.opcode = CREATE_FOLDER;
+        send(client.socket, &msg, sizeof(msg), 0);  // Notify client to create the folder
+
+        struct dirent* entry;
+        while ((entry = readdir(dir)) != nullptr) {
+            if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) continue;  // Skip "." and ".."
+
+            std::string itemPath = folderPath + "/" + entry->d_name;
+            strcpy(msg.payload, entry->d_name);
+
+            if (isDirectory(itemPath.c_str())) {
+                // If it's a subfolder, recursively handle it
+                // strcpy(msg.payload, entry->d_name);
+                // send(client.socket, &msg, sizeof(msg), 0);
+                std::cout << "Handle Folder Download - Subfolder: " << itemPath << std::endl;
+                handleFolderDownload(client, itemPath, msg);  // Recursively handle subfolders
+            } else {
+                // If it's a file, handle it as a file
+                // strcpy(msg.payload, entry->d_name);
+                std::cout << "Handle Folder Download - File: " << itemPath << std::endl;
+                // send filename to client
+                send(client.socket, &msg, sizeof(msg), 0);
+                handleFileDownload(client, itemPath, msg);  // Handle file download
+            }
+
+            // itemPath = folderPath;
+        }
+
+        closedir(dir);
+    }
+
+    // Main handler function that determines if it's a file or folder
+    static void handleDownload(ClientInfo& client, Message& msg) {
+        std::string requestedPath = std::string(client.currentDir) + "/" + msg.payload;
+
+        // Check if the requested path is a file or folder
+        if (isDirectory(requestedPath.c_str())) {
+            // It's a folder, process the folder
+            handleFolderDownload(client, requestedPath, msg);
+        } else {
+            // It's a file, process the file download
+            handleFileDownload(client, requestedPath, msg);
+        } 
+    }
+
 
     static void handleDataDown(ClientInfo& client, Message& msg) {
         if (client.file && client.bytesLeft > 0) {
@@ -217,6 +206,8 @@ public:
                 client.file = nullptr;
                 send(client.socket, &msg, sizeof(msg), 0);
                 msg.opcode = DOWNLOAD_SUCCESS;
+                std::string message = "Download file " + std::string(client.filename);
+                addToLog(message.c_str(), client.userId);
             }
         } else {
             std::cout << "Handle Data Down - File is empty" << std::endl;

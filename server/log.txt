@@ -1,0 +1,27 @@
+25/12/24	23:18:55	Download file f2.txt	user1
+25/12/24	23:21:26	Download file f2.txt	user1
+25/12/24	23:24:42	Upload file f2.txt	user1
+25/12/24	23:25:51	Upload file 	user1
+25/12/24	23:26:08	Delete file	user1
+25/12/24	23:53:07	Upload file 	user1
+26/12/24	07:58:04	Created folder ./ServerData/a	user1
+26/12/24	07:58:04	Created folder ./ServerData/a/b	user1
+26/12/24	08:00:14	Created folder ./ServerData/a	user1
+26/12/24	08:00:14	Created folder ./ServerData/a/b	user1
+26/12/24	08:08:11	Created folder ./ServerData/a	user1
+26/12/24	08:08:11	Created folder ./ServerData/a/b	user1
+26/12/24	08:14:30	Created folder ./ServerData/a	user1
+26/12/24	08:14:30	Created folder ./ServerData/a/b	user1
+26/12/24	08:14:36	Deleted folder ./ServerData/a/b	user1
+26/12/24	08:14:36	Deleted folder ./ServerData/a	user1
+26/12/24	08:17:06	Created folder ./ServerData/a	user1
+26/12/24	08:17:06	Created folder ./ServerData/a/b	user1
+26/12/24	08:17:09	Deleted folder ./ServerData/a/b	user1
+26/12/24	08:17:09	Deleted folder ./ServerData/a	user1
+26/12/24	08:17:31	Created folder ./ServerData/a	user1
+26/12/24	08:17:31	Created folder ./ServerData/a/b	user1
+26/12/24	08:17:49	Deleted folder ./ServerData/a/b	user1
+26/12/24	08:18:18	Deleted folder ./ServerData/a	user1
+26/12/24	08:19:07	Renamed folder ./ServerData/test1 to ./ServerData/test123	user1
+26/12/24	08:19:23	Renamed folder ./ServerData/test123 to ./ServerData/test1	user1
+26/12/24	08:20:32	Delete file ./ServerData/test.txt	user1

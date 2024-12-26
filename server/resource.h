@@ -14,6 +14,7 @@
 #include <iostream>
 #include <algorithm>
 #include <sys/select.h>
+#include <time.h>
 
 #define BUFF_SIZE 2048
 #define MAX_CLIENTS 20
@@ -44,6 +45,7 @@ struct ClientInfo {
     size_t bytesLeft;
     char filename[200];
     char currentDir[256];
+    char userId[25];
 };
 
 enum OpCodes {
@@ -71,10 +73,12 @@ enum OpCodes {
     UPLOAD_SUCCESS = 130,
     DOWNLOAD_SUCCESS = 131,
     CHANGE_SUCCESS = 132,
+    
     SEARCH_FILE_SUCCESS = 133,
     CREATE_FILE_SUCCESS = 137,
     DELETE_FILE_SUCCESS = 138,
     FILE_NOT_FOUND = 139,
+
     CREATE_FOLDER_SUCCESS = 140,
     DELETE_FOLDER_SUCCESS = 141,
     FOLDER_ALREADY_EXIST = 142,

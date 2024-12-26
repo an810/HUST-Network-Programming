@@ -14,7 +14,7 @@ void handleClientRequest(int sock, ClientInfo &client, Message &msg) {
 
     switch (msg.opcode) {
         case LOGIN:
-            Authentication::handleLogin(sock, msg, accounts);
+            Authentication::handleLogin(sock, msg, accounts, client);
             break;
         case CHANGE_DIR:
             Directory::changeDirectory(client, msg);
