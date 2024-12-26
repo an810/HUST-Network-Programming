@@ -33,12 +33,40 @@ public:
         return true;
     }
 
-    bool login(const char* id, const char* pass) {
-        isLoggedIn = Authentication::login(sock, id, pass);
+    bool login(const char* username, const char* pass) {
+        isLoggedIn = Authentication::login(sock, username, pass);
         if (isLoggedIn) {
-            isAdmin = (strcmp(id, "admin") == 0);
+            isAdmin = (strcmp(username, "admin") == 0);
         }
         return isLoggedIn;
+    }
+
+    bool registerUser(const char* username, const char* password) {
+        Message msg;
+        msg.opcode = REGISTER;
+        snprintf(msg.payload, sizeof(msg.payload), "%s %s", username, password);
+
+        send(sock, &msg, sizeof(msg), 0);
+        recv(sock, &msg, sizeof(msg), 0);
+
+        switch (msg.opcode) {
+            case REGISTER_SUCCESS:
+                cout << "Registration successful!\n";
+                cout << "Your ID is: " << msg.payload << "\n";
+                cout << "Please keep this ID for future reference\n";
+                return true;
+            case USER_EXISTS:
+                cout << "Username already exists\n";
+            break;
+            case INVALID_DATA:
+                cout << "Invalid registration data\n"
+                     << "- Username must be at least 3 alphanumeric characters\n"
+                     << "- Password must be at least 6 characters\n";
+            break;
+            default:
+                cout << "Registration failed\n";
+        }
+        return false;
     }
 
     bool grantPermission(const char* path, const char* userId, int permission) {
@@ -84,22 +112,29 @@ int main() {
         if (!loggedIn) {
             cout << "\n=== File Transfer System ===\n"
                  << "1. Login\n"
-                 << "2. Exit\n"
-                 << "Choose option (1-2): ";
+                 << "2. Register\n"  // Added registration option
+                 << "3. Exit\n"
+                 << "Choose option (1-3): ";
 
             cin >> command;
             if (command == "1") {
-                string id, pass;
-                cout << "ID: "; cin >> id;
+                string username, pass;
+                cout << "Username: "; cin >> username;
                 cout << "Password: "; cin >> pass;
-                if (client.login(id.c_str(), pass.c_str())) {
+                if (client.login(username.c_str(), pass.c_str())) {
                     cout << "Login successful\n";
                     loggedIn = true;
                 } else {
                     cout << "Login failed\n";
                 }
             }
-            else if (command == "2") break;
+            else if (command == "2") {
+                string username, password;
+                cout << "Username (alphanumeric, min 3 chars): "; cin >> username;
+                cout << "Password (min 6 chars): "; cin >> password;
+                client.registerUser(username.c_str(), password.c_str());
+            }
+            else if (command == "3") break;
             else cout << "Invalid option\n";
             continue;
         }

@@ -7,9 +7,13 @@
 class Directory {
 public:
     static void listFiles(ClientInfo& client, Message& msg) {
-
         DIR* dir = opendir(client.currentDir);
         if (!dir) return;
+
+        if (!PermissionHandler::checkPermission(client.currentDir, client.userId, EXECUTE)) {
+            msg.opcode = PERMISSION_DENIED;
+            return;
+        }
 
         struct dirent* entry;
         std::string result;

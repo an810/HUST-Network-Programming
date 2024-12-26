@@ -32,6 +32,12 @@ enum OpCodes {
     ID_NOT_FOUND = 102,
     WRONG_PASSWORD = 104,
 
+    REGISTER = 11,
+    REGISTER_SUCCESS = 111,
+    REGISTER_FAILED = 112,
+    USER_EXISTS = 113,
+    INVALID_DATA = 114,
+
     UPLOAD = 30,
     DOWNLOAD = 31,
     DATA_UP = 32,

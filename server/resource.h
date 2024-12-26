@@ -28,7 +28,6 @@ struct Account {
     char id[6];
     char user[25];
     char pass[25];
-    int status;
 };
 
 struct Message {
@@ -53,6 +52,12 @@ enum OpCodes {
     LOGIN_SUCCESS = 100,
     ID_NOT_FOUND = 102,
     WRONG_PASSWORD = 104,
+
+    REGISTER = 11,
+    REGISTER_SUCCESS = 111,
+    REGISTER_FAILED = 112,
+    USER_EXISTS = 113,
+    INVALID_DATA = 114,
 
     UPLOAD = 30,
     DOWNLOAD = 31,

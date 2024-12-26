@@ -84,3 +84,12 @@
 26/12/24	19:45:01	Download file f3.txt	user1
 26/12/24	19:45:19	Download file f3/f3.txt	user1
 26/12/24	21:10:51	Granted permission 7 to user user1 for path ./ServerData/f2	admin
+26/12/24	22:15:16	New user registered - Username: khoaihps, ID: 0001	0001
+26/12/24	22:16:52	New user registered - Username: anngu, ID: 0002	0002
+26/12/24	22:18:14	New user registered - Username: anngu, ID: 0003	0003
+26/12/24	22:22:54	New user registered - Username: anngu, ID: 0003	0003
+26/12/24	22:26:24	New user registered - Username: anngu, ID: 0003	0003
+26/12/24	22:27:10	New user registered - Username: anngu2, ID: 0004	0004
+26/12/24	22:34:10	New user registered - Username: anngu, ID: 0003	0003
+26/12/24	22:37:47	New user registered - Username: anngu, ID: 0003	0003
+26/12/24	22:39:00	New user registered - Username: anngu1, ID: 0004	0004

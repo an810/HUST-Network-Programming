@@ -11,11 +11,17 @@ void handleClientRequest(int sock, ClientInfo &client, Message &msg) {
     int bytes = recv(sock, &msg, sizeof(Message), 0);
     if (bytes <= 0) return;  // Connection closed or error
 
+    Authentication::loadAccounts(accounts);
+    PermissionHandler::init();
+
     std::cout << "Received message from client " << msg.opcode << std::endl;
 
     switch (msg.opcode) {
         case LOGIN:
-            Authentication::handleLogin(sock, msg, accounts, client);
+            Authentication::handleLogin(sock, msg, accounts);
+            break;
+        case REGISTER:
+            Authentication::handleRegistration(sock, msg);
             break;
         case GRANT_PERMISSION:
             if (strcmp(client.userId, "admin") == 0) {

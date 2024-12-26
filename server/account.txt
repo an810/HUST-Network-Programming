@@ -1,4 +1,4 @@
-admin admin 123456
-100 user1 pass123
-101 user2 pass456
-102 user3 pass789
+0001 admin 123456
+0002 khoaihps 123456
+0003 anngu 123456
+0004 anngu1 123456
