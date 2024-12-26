@@ -100,3 +100,4 @@
 26/12/24	23:13:24	Granted permission 7 to user anngu for path ./ServerData/.	admin
 26/12/24	23:21:32	Granted permission 7 to user anngu1 for path ./ServerData/.	admin
 26/12/24	23:26:48	Granted permission 7 to user anngu1 for path ./ServerData/.	admin
+26/12/24	23:43:51	Upload file 	khoaihps

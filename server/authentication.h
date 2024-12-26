@@ -6,7 +6,7 @@ class Authentication {
 private:
     static std::string generateId() {
         std::string id;
-        std::ifstream file("account.txt");
+        std::ifstream file("pvc/account.txt");
         std::string maxId = "0000";
         std::string fileId, username, password;
 
@@ -45,7 +45,7 @@ private:
     }
 
     static bool userExists(const char* username) {
-        std::ifstream file("account.txt");
+        std::ifstream file("pvc/account.txt");
         std::string id, fileUsername, password;
 
         while (file >> id >> fileUsername >> password) {
@@ -80,7 +80,7 @@ public:
         std::string newId = generateId();
 
         // Save new account - ensure each account on new line
-        std::ofstream file("account.txt", std::ios::app);
+        std::ofstream file("pvc/account.txt", std::ios::app);
         file << newId << " " << username << " " << password << std::endl;
         file.close();
 
@@ -94,7 +94,7 @@ public:
     }
 
     static void saveAccounts(const std::vector<Account>& accounts) {
-        std::ofstream file("account.txt");
+        std::ofstream file("pvc/account.txt");
         for (const auto& acc : accounts) {
             file << acc.id << " " << acc.user << " " << acc.pass << " " << std::endl;
         }
@@ -102,7 +102,7 @@ public:
     }
 
     static void loadAccounts(std::vector<Account>& accounts) {
-        std::ifstream file("account.txt");
+        std::ifstream file("pvc/account.txt");
         Account acc;
         while (file >> acc.id >> acc.user >> acc.pass) {
             accounts.push_back(acc);
