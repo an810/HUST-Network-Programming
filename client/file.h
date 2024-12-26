@@ -24,18 +24,24 @@ public:
         recv(sock, &msg, sizeof(Message), 0);
 
         std::cout << "Server response: " << msg.opcode << std::endl;
-        std::cout << "File found at: " << msg.payload << std::endl;
+        std::cout << "File found at: \n" << msg.payload << std::endl;
         return msg.opcode == SEARCH_FILE_SUCCESS;
     }
 
-    static bool uploadFile(int sock, const char* filename) {
-        std::string filepath = std::string(CLIENT_FOLDER) + "/" + filename;
+    static bool uploadFile(int sock, const char* filePath) {
+        std::string filepath = std::string(CLIENT_FOLDER) + "/" + filePath;
+        std::string filename = filePath;
+        size_t pos = filename.find_last_of("/\\");
+        if (pos != std::string::npos) {
+            filename = filename.substr(pos + 1);
+        }
+        // extract the file name from the path
         FILE* file = fopen(filepath.c_str(), "rb");
         if (!file) return false;
 
         Message msg;
         msg.opcode = UPLOAD;
-        strcpy(msg.payload, filename);
+        strcpy(msg.payload, filename.c_str());
 
         fseek(file, 0, SEEK_END);
         msg.length = ftell(file);
@@ -63,18 +69,25 @@ public:
         return msg.opcode == DATA_UP;
     }
 
-    static bool downloadFile(int sock, const char* filename) {
-        std::cout << "Downloading file: " << filename << std::endl;
+    static bool downloadFile(int sock, const char* filePath) {
+        std::cout << "Downloading file: " << filePath << std::endl;
         Message msg;
         msg.opcode = DOWNLOAD;
-        strcpy(msg.payload, filename);
+        strcpy(msg.payload, filePath);
 
         send(sock, &msg, sizeof(Message), 0);
         recv(sock, &msg, sizeof(Message), 0);
         if (msg.opcode != DATA_DOWN) return false;
 
-        std::string filepath = std::string(CLIENT_FOLDER) + "/" + filename;
-        FILE* file = fopen(filepath.c_str(), "wb");
+        std::string fullpath = std::string(CLIENT_FOLDER) + "/" + filePath;
+        // extract file name from the path
+        std::string filename = filePath;
+        size_t pos = filename.find_last_of("/\\");
+        if (pos != std::string::npos) {
+            filename = filename.substr(pos + 1);
+        }
+        std::string downloadFile = std::string(CLIENT_FOLDER) + "/" + filename;
+        FILE* file = fopen(downloadFile.c_str(), "wb");
         if (!file) return false;
 
         do {

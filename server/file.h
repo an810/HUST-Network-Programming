@@ -32,8 +32,7 @@ public:
 
     }
 
-
-    static void searchInSubfolders(const std::string& basePath, const std::string& fileName, std::string& foundPath) {
+    static void searchInSubfolders(const std::string& basePath, const std::string& fileName, std::vector<std::string>& foundPaths) {
         DIR* dir = opendir(basePath.c_str());
         if (!dir) return;
 
@@ -43,28 +42,31 @@ public:
 
             std::string path = basePath + "/" + entry->d_name;
             if (isDirectory(path.c_str())) {
-                searchInSubfolders(path, fileName, foundPath);
-                if (!foundPath.empty()) break;
+                searchInSubfolders(path, fileName, foundPaths);
             } else if (strcmp(entry->d_name, fileName.c_str()) == 0) {
-                foundPath = path;
-                break;
+                foundPaths.push_back(path);
             }
         }
         closedir(dir);
     }
 
     static void handleSearchFile(ClientInfo& client, Message& msg) {
-        std::string foundPath;
-        searchInSubfolders(SERVER_FOLDER, msg.payload, foundPath);
+        std::vector<std::string> foundPaths;
+        searchInSubfolders(SERVER_FOLDER, msg.payload, foundPaths);
 
-        if (!foundPath.empty()) {
-            strcpy(msg.payload, foundPath.c_str());
+        if (!foundPaths.empty()) {
+            std::string allPaths;
+            for (const auto& path : foundPaths) {
+                allPaths += path + "\n"; // Combine paths with newline separator
+            }
+
+            strncpy(msg.payload, allPaths.c_str(), sizeof(msg.payload) - 1);
+            msg.payload[sizeof(msg.payload) - 1] = '\0'; // Ensure null-termination
             msg.opcode = SEARCH_FILE_SUCCESS;
         } else {
             msg.opcode = FILE_NOT_FOUND;
         }
     }
-
 
 
     static void handleUpload(ClientInfo& client, Message& msg) {
