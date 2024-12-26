@@ -110,6 +110,12 @@ public:
 
     // This function will be responsible for handling the file download
     static void handleFileDownload(ClientInfo& client, const std::string& filePath, Message& msg) {
+        std::size_t pos = filePath.find_last_of('/');
+        std::string directory = filePath.substr(0, pos);
+        if (!PermissionHandler::checkPermission(directory.c_str(), client.userId, READ)) {
+            msg.opcode = PERMISSION_DENIED;
+            return;
+        }
         std::cout << "Handle File Download - File Path: " << filePath << std::endl;
         client.file = fopen(filePath.c_str(), "rb");
         if (client.file) {
@@ -135,7 +141,10 @@ public:
             // send(client.socket, &msg, sizeof(msg), 0);  // Folder doesn't exist
             return;
         }
-
+        if (!PermissionHandler::checkPermission(folderPath.c_str(), client.userId, READ)) {
+            msg.opcode = PERMISSION_DENIED;
+            return;
+        }
         msg.opcode = CREATE_FOLDER;
         send(client.socket, &msg, sizeof(msg), 0);  // Notify client to create the folder
 
@@ -218,24 +227,12 @@ public:
                 handleUpload(client, msg);
                 break;
             case DATA_UP:
-                if (!PermissionHandler::checkPermission(client.currentDir, client.userId, WRITE)) {
-                    msg.opcode = PERMISSION_DENIED;
-                    return;
-                }
                 handleDataUpload(client, msg);
                 break;
             case DOWNLOAD:
-                if (!PermissionHandler::checkPermission(client.currentDir, client.userId, READ)) {
-                    msg.opcode = PERMISSION_DENIED;
-                    return;
-                }
                 handleDownload(client, msg);
                 break;
             case DATA_DOWN:
-                if (!PermissionHandler::checkPermission(client.currentDir, client.userId, READ)) {
-                    msg.opcode = PERMISSION_DENIED;
-                    return;
-                }
                 handleDataDown(client, msg);
                 break;
             case DELETE_FILE:

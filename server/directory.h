@@ -96,10 +96,6 @@ public:
     }
 
     static void deleteDirectory(ClientInfo& client, Message& msg) {
-        if (!PermissionHandler::checkPermission(client.currentDir, client.userId, WRITE)) {
-            msg.opcode = PERMISSION_DENIED;
-            return;
-        }
         char path[256];
         snprintf(path, sizeof(path), "%s/%s", client.currentDir, msg.payload);
 

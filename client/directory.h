@@ -73,6 +73,10 @@ public:
 
         // Wait for server response
         recv(sock, &msg, sizeof(Message), 0);
+        if (msg.opcode == PERMISSION_DENIED) {
+            std::cout << "PERMISSION DENIED!" << std::endl;
+            return false;
+        }
         std::cout << "Start downloading folder - Server response: " << msg.opcode << " - " << msg.payload << std::endl;
 
         if (msg.opcode == FOLDER_NOT_FOUND) return false;
@@ -140,7 +144,8 @@ public:
                 } while (msg.length > 0);
 
                 fclose(file);
-            }
+            } else
+                return false;
         }
         return true;
     }
