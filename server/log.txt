@@ -79,3 +79,8 @@
 26/12/24	16:44:49	Upload file 	user1
 26/12/24	16:49:56	Created folder ./ServerData/f3/a	user1
 26/12/24	16:49:56	Created folder ./ServerData/f3/a/b	user1
+26/12/24	19:37:59	Created folder ./ServerData/abc	user1
+26/12/24	19:41:49	Download file f3/f3.txt	user1
+26/12/24	19:45:01	Download file f3.txt	user1
+26/12/24	19:45:19	Download file f3/f3.txt	user1
+26/12/24	21:10:51	Granted permission 7 to user user1 for path ./ServerData/f2	admin

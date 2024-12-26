@@ -1,2 +1,2 @@
-./ServerData user1 7
 ./ServerData/f3 user1 7
+./ServerData/f2 user1 7

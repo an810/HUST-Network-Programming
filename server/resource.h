@@ -85,8 +85,8 @@ enum OpCodes {
     FOLDER_NOT_FOUND = 143,
 
     PERMISSION_DENIED = 150,
-    SET_PERMISSION = 45,
-    PERMISSION_SUCCESS = 151
+    GRANT_PERMISSION = 46,
+    GRANT_SUCCESS = 152,
 };
 
 enum PermissionType {

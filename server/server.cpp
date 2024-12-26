@@ -17,6 +17,13 @@ void handleClientRequest(int sock, ClientInfo &client, Message &msg) {
         case LOGIN:
             Authentication::handleLogin(sock, msg, accounts, client);
             break;
+        case GRANT_PERMISSION:
+            if (strcmp(client.userId, "admin") == 0) {
+                PermissionHandler::handleGrantPermission(client, msg);
+            } else {
+                msg.opcode = PERMISSION_DENIED;
+            }
+            break;
         case CHANGE_DIR:
             Directory::changeDirectory(client, msg);
             break;

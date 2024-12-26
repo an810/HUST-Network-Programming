@@ -2,6 +2,7 @@
 #include "resource.h"
 #include "file.h"
 #include "permission.h"
+#include "logger.h"
 
 class Directory {
 public:
@@ -51,7 +52,7 @@ public:
             // Normal directory change
             snprintf(newPath, sizeof(newPath), "%s/%s", client.currentDir, newDir.c_str());
             if (opendir(newPath)) {
-                if (!PermissionHandler::checkPermission(newPath, client.userId, READ)) {
+                if (!PermissionHandler::checkPermission(newPath, client.userId, EXECUTE)) {
                     msg.opcode = PERMISSION_DENIED;
                     return false;
                 }
@@ -84,7 +85,7 @@ public:
         if (mkdir(path, 0777) == 0) {
             msg.opcode = CREATE_FOLDER_SUCCESS;
             std::string message = "Created folder " + std::string(path);
-            FileHandler::addToLog(message.c_str(), client.userId);
+            Logger::addToLog(message.c_str(), client.userId);
         } else {
             msg.opcode = FOLDER_ALREADY_EXIST;
         }
@@ -102,6 +103,11 @@ public:
         if (!dir) {
             std::cout << "Directory not found: " << path << std::endl;
             msg.opcode = FOLDER_NOT_FOUND;
+            return;
+        }
+
+        if (!PermissionHandler::checkPermission(path, client.userId, WRITE)) {
+            msg.opcode = PERMISSION_DENIED;
             return;
         }
 
@@ -141,7 +147,7 @@ public:
         if (rmdir(path) == 0) {
             std::cout << "Deleted folder: " << path << std::endl;
             std::string message = "Deleted folder " + std::string(path);
-            FileHandler::addToLog(message.c_str(), client.userId);
+            Logger::addToLog(message.c_str(), client.userId);
             msg.opcode = DELETE_FOLDER_SUCCESS;
         } else {
             std::cout << "Failed to delete folder: " << path << std::endl;
@@ -157,10 +163,15 @@ public:
         snprintf(oldPath, sizeof(oldPath), "%s/%s", client.currentDir, oldName);
         snprintf(newPath, sizeof(newPath), "%s/%s", client.currentDir, newName);
 
+        if (!PermissionHandler::checkPermission(oldPath, client.userId, WRITE)) {
+            msg.opcode = PERMISSION_DENIED;
+            return;
+        }
+
         if (rename(oldPath, newPath) == 0) {
             msg.opcode = CREATE_FOLDER_SUCCESS;
             std::string message = "Renamed folder " + std::string(oldPath) + " to " + std::string(newPath);
-            FileHandler::addToLog(message.c_str(), client.userId);
+            Logger::addToLog(message.c_str(), client.userId);
         } else {
             msg.opcode = FOLDER_NOT_FOUND;
         }

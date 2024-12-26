@@ -1,20 +1,10 @@
 #pragma once
 #include "resource.h"
+#include "permission.h"
+#include "logger.h"
 
 class FileHandler {
 public:
-    static void addToLog(const char* message, const char* userId) {
-        std::ofstream logFile("log.txt", std::ios::app);
-        if (logFile.is_open()) {
-            time_t rawtime = time(NULL);
-	        tm* ptm = localtime(&rawtime);
-            char* currentTime = (char*)malloc(sizeof(char) * 100);;
-            strftime(currentTime, 100, "%d/%m/%y\t%H:%M:%S", ptm);
-            logFile << currentTime << "\t" << message << "\t" << userId << std::endl;
-            logFile.close();
-            free(currentTime);
-        }
-    }
     
     static void handleDelete(ClientInfo& client, Message& msg) {
         std::cout << "Delete file - Client current dir: " << client.currentDir << std::endl;
@@ -23,7 +13,7 @@ public:
         if (remove(filepath.c_str()) == 0) {
             msg.opcode = DELETE_FILE_SUCCESS;
             std::string message = "Delete file " + filepath;
-            addToLog(message.c_str(), client.userId);
+            Logger::addToLog(message.c_str(), client.userId);
             std::cout << "Delete file - File deleted successfully " << msg.opcode << std::endl;
         } else {
             msg.opcode = FILE_NOT_FOUND;
@@ -87,7 +77,7 @@ public:
                 // send(client.socket, &msg, sizeof(msg), 0);
                 // msg.opcode = UPLOAD_SUCCESS;
                 std::string message = "Upload file " + std::string(client.filename);
-                addToLog(message.c_str(), client.userId);
+                Logger::addToLog(message.c_str(), client.userId);
             }
         }
     }
@@ -210,7 +200,7 @@ public:
                 send(client.socket, &msg, sizeof(msg), 0);
                 msg.opcode = DOWNLOAD_SUCCESS;
                 std::string message = "Download file " + std::string(client.filename);
-                addToLog(message.c_str(), client.userId);
+                Logger::addToLog(message.c_str(), client.userId);
             }
         } else {
             std::cout << "Handle Data Down - File is empty" << std::endl;

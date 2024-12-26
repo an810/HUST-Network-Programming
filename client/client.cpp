@@ -12,7 +12,9 @@ private:
     bool isLoggedIn;
 
 public:
-    Client() : isConnected(false), isLoggedIn(false) {
+    bool isAdmin;
+
+    Client() : isConnected(false), isLoggedIn(false), isAdmin(false) {
         mkdir(CLIENT_FOLDER, 0777);
     }
 
@@ -33,7 +35,23 @@ public:
 
     bool login(const char* id, const char* pass) {
         isLoggedIn = Authentication::login(sock, id, pass);
+        if (isLoggedIn) {
+            isAdmin = (strcmp(id, "admin") == 0);
+        }
         return isLoggedIn;
+    }
+
+    bool grantPermission(const char* path, const char* userId, int permission) {
+        if (!isAdmin) {
+            cout << "Permission denied: Only admin can grant permissions\n";
+            return false;
+        }
+        Message msg;
+        msg.opcode = GRANT_PERMISSION;
+        snprintf(msg.payload, sizeof(msg.payload), "%s %s %d", path, userId, permission);
+        send(sock, &msg, sizeof(msg), 0);
+        recv(sock, &msg, sizeof(msg), 0);
+        return msg.opcode == GRANT_SUCCESS;
     }
 
     void listFiles() { Directory::listFiles(sock); }
@@ -97,10 +115,15 @@ int main() {
              << "8. Delete file\n"
              << "9. Upload folder\n"
              << "10. Download folder\n"
-             << "11. Search file\n"
-             << "15. Logout\n"
+             << "11. Search file\n";
+
+        if (client.isAdmin) {
+            cout << "12. Grant permission\n";
+        }
+
+        cout << "15. Logout\n"
              << "0. Exit\n"
-             << "Choose option (1-9): ";
+             << "Choose option (0-15): ";
 
         cin >> command;
 
@@ -203,6 +226,40 @@ int main() {
                 cout << "File found\n";
             } else {
                 cout << "File not found\n";
+            }
+        }
+        else if (command == "12") {
+            if (client.isAdmin) {
+                string path, userId;
+                int permission;
+
+                cout << "Enter path: ";
+                cin >> path;
+                cout << "Enter user ID: ";
+                cin >> userId;
+                cout << "Enter permission (1-7):\n"
+                     << "1: READ\n"
+                     << "2: WRITE\n"
+                     << "4: EXECUTE\n"
+                     << "3: READ + WRITE\n"
+                     << "5: READ + EXECUTE\n"
+                     << "6: WRITE + EXECUTE\n"
+                     << "7: READ + WRITE + EXECUTE\n"
+                     << "Permission: ";
+                cin >> permission;
+
+                if (permission < 1 || permission > 7) {
+                    cout << "Invalid permission value\n";
+                    continue;
+                }
+
+                if (client.grantPermission(path.c_str(), userId.c_str(), permission)) {
+                    cout << "Permission granted successfully\n";
+                } else {
+                    cout << "Failed to grant permission\n";
+                }
+            } else {
+                cout << "Permission denied: Only admin can grant permissions\n";
             }
         }
         else if (command == "15") loggedIn = false;
