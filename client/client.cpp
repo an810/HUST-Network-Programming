@@ -98,9 +98,14 @@ public:
     }
 };
 
-int main() {
+int main(int argc, char* argv[]) {
+    if (argc != 3) {
+        cout << "Usage: " << argv[0] << " <ip> <port>\n";
+        return 1;
+    }
+
     Client client;
-    if (!client.connect("127.0.0.1", 5500)) {
+    if (!client.connect(argv[1], atoi(argv[2]))) {
         cout << "Connection failed\n";
         return 1;
     }
@@ -110,9 +115,9 @@ int main() {
 
     while (true) {
         if (!loggedIn) {
-            cout << "\n=== File Transfer System ===\n"
+            cout << "\n==================== File Transfer System ====================\n"
                  << "1. Login\n"
-                 << "2. Register\n"  // Added registration option
+                 << "2. Register\n"
                  << "3. Exit\n"
                  << "Choose option (1-3): ";
 

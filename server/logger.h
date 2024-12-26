@@ -4,7 +4,7 @@
 class Logger {
 public:
     static void addToLog(const char* message, const char* userId) {
-        std::ofstream logFile("log.txt", std::ios::app);
+        std::ofstream logFile("pvc/log.txt", std::ios::app);
         if (logFile.is_open()) {
             time_t rawtime = time(NULL);
             tm* ptm = localtime(&rawtime);

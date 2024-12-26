@@ -7,7 +7,7 @@ private:
     static std::vector<Permission> permissions;
 
     static void loadPermissions() {
-        std::ifstream file("permissions.txt");
+        std::ifstream file("pvc/permissions.txt");
         permissions.clear();
         Permission perm;
         while (file >> perm.path >> perm.userId >> perm.permissionType) {
@@ -17,7 +17,7 @@ private:
     }
 
     static void savePermissions() {
-        std::ofstream file("permissions.txt");
+        std::ofstream file("pvc/permissions.txt");
         for (const auto& perm : permissions) {
             file << perm.path << " " << perm.userId << " " << perm.permissionType << std::endl;
         }
