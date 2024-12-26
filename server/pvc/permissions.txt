@@ -1,3 +1,0 @@
-./ServerData/ khoaihps 7
-./ServerData/. anngu 7
-./ServerData/. anngu1 7
