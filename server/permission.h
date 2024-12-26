@@ -8,6 +8,7 @@ private:
 
     static void loadPermissions() {
         std::ifstream file("permissions.txt");
+        permissions.clear();
         Permission perm;
         while (file >> perm.path >> perm.userId >> perm.permissionType) {
             permissions.push_back(perm);
@@ -24,16 +25,88 @@ private:
     }
 
     static bool isSubPath(const std::string& parentPath, const std::string& childPath) {
-        if (parentPath.empty() || childPath.empty()) return false;
-        if (childPath == parentPath) return true;
-        return childPath.find(parentPath + "/") == 0;
+        // Normalize path by:
+        // 1. Removing trailing slashes
+        // 2. Resolving . and ..
+        // 3. Removing duplicate slashes
+        auto normalizePath = [](const std::string& path) -> std::string {
+            std::vector<std::string> parts;
+            std::string currentPart;
+            std::string normalizedPath = path;
+
+            // Remove trailing slashes
+            while (!normalizedPath.empty() && normalizedPath.back() == '/') {
+                normalizedPath.pop_back();
+            }
+
+            // Split path into parts
+            for (char c : normalizedPath) {
+                if (c == '/') {
+                    if (!currentPart.empty()) {
+                        parts.push_back(currentPart);
+                        currentPart.clear();
+                    }
+                } else {
+                    currentPart += c;
+                }
+            }
+            if (!currentPart.empty()) {
+                parts.push_back(currentPart);
+            }
+
+            // Process . and ..
+            std::vector<std::string> normalizedParts;
+            for (const auto& part : parts) {
+                if (part == ".") {
+                    continue;
+                } else if (part == "..") {
+                    if (!normalizedParts.empty()) {
+                        normalizedParts.pop_back();
+                    }
+                } else {
+                    normalizedParts.push_back(part);
+                }
+            }
+
+            // Rebuild path
+            std::string result;
+            for (const auto& part : normalizedParts) {
+                result += "/" + part;
+            }
+
+            // Handle empty path
+            if (result.empty() && !path.empty()) {
+                return ".";
+            }
+
+            return result;
+        };
+
+        std::string normParent = normalizePath(parentPath);
+        std::string normChild = normalizePath(childPath);
+
+        if (normParent.empty() || normChild.empty()) return false;
+
+        // Exact match after normalization
+        if (normChild == normParent) return true;
+
+        // Check if child starts with parent and the next char is '/'
+        if (normChild.length() > normParent.length() &&
+            normChild.substr(0, normParent.length()) == normParent &&
+            normChild[normParent.length()] == '/') {
+            return true;
+        }
+
+        return false;
     }
 
 public:
     static bool checkPermission(const char* path, const char* userId, PermissionType requiredPermission) {
+        std::cout << "Checking permission for " << userId << " on " << path << std::endl;
         if (strcmp(userId, "admin") == 0) return true;
 
         for (const auto& perm : permissions) {
+            std::cout<<perm.userId<<" "<<perm.path<<" "<<perm.permissionType<<std::endl;
             if (strcmp(perm.userId, userId) != 0) continue;
 
             std::string pathStr(path);

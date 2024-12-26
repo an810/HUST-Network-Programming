@@ -162,7 +162,9 @@ int main() {
 
         cin >> command;
 
-        if (command == "1") client.listFiles();
+        if (command == "1") {
+            client.listFiles();
+        }
         else if (command == "2") {
             string dir;
             cout << "Enter directory: ";
@@ -270,7 +272,7 @@ int main() {
 
                 cout << "Enter path: ";
                 cin >> path;
-                cout << "Enter user ID: ";
+                cout << "Enter username: ";
                 cin >> userId;
                 cout << "Enter permission (1-7):\n"
                      << "1: READ\n"

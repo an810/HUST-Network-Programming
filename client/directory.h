@@ -153,8 +153,11 @@ public:
         send(sock, &msg, sizeof(Message), 0);
         recv(sock, &msg, sizeof(Message), 0);
         std::cout << "Server response: " << msg.opcode << std::endl;
-        std::cout << "*--------------------------------------------------\n";
-        std::cout << "Files:\n" << msg.payload;
+        if (msg.opcode == PERMISSION_DENIED) std::cout << "PERMISSION DENIED!\n";
+        if (msg.opcode == LIST_FILES) {
+            std::cout << "*--------------------------------------------------\n";
+            std::cout << "Files:\n" << msg.payload;
+        }
     }
 
     static bool changeDir(int sock, const char* dir) {
@@ -164,7 +167,12 @@ public:
         send(sock, &msg, sizeof(Message), 0);
         recv(sock, &msg, sizeof(Message), 0);
         std::cout << "Server response: " << msg.opcode << std::endl;
-        std::cout << "Current directory: " << msg.payload << std::endl;
+        if (msg.opcode == PERMISSION_DENIED) {
+            std::cout << "PERMISSION DENIED!\n";
+        }
+        else {
+            std::cout << "Current directory: " << msg.payload << std::endl;
+        }
         return msg.opcode == CHANGE_SUCCESS;
     }
 
@@ -175,6 +183,7 @@ public:
         send(sock, &msg, sizeof(Message), 0);
         recv(sock, &msg, sizeof(Message), 0);
         std::cout << "Server response: " << msg.opcode << std::endl;
+        if (msg.opcode == PERMISSION_DENIED) std::cout << "PERMISSION DENIED!\n";
         return msg.opcode == CREATE_FOLDER_SUCCESS;
     }
 
@@ -185,6 +194,7 @@ public:
         send(sock, &msg, sizeof(Message), 0);
         recv(sock, &msg, sizeof(Message), 0);
         std::cout << "Server response: " << msg.opcode << std::endl;
+        if (msg.opcode == PERMISSION_DENIED) std::cout << "PERMISSION DENIED!\n";
         return msg.opcode == DELETE_FOLDER_SUCCESS;
     }
 
@@ -195,6 +205,7 @@ public:
         send(sock, &msg, sizeof(Message), 0);
         recv(sock, &msg, sizeof(Message), 0);
         std::cout << "Server response: " << msg.opcode << std::endl;
+        if (msg.opcode == PERMISSION_DENIED) std::cout << "PERMISSION DENIED!\n";
         return msg.opcode == CREATE_FOLDER_SUCCESS;
     }
 };

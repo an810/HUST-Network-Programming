@@ -12,6 +12,7 @@ public:
         recv(sock, &msg, sizeof(Message), 0);
 
         std::cout << "Server response: " << msg.opcode << std::endl;
+        if (msg.opcode == PERMISSION_DENIED) std::cout << "PERMISSION DENIED!\n";
         return msg.opcode == DELETE_FILE_SUCCESS;
     }
 
@@ -66,6 +67,7 @@ public:
         fclose(file);
         // recv(sock, &msg, sizeof(Message), 0);
         std::cout << "Server response - uploadFile: " << msg.opcode << std::endl;
+        if (msg.opcode == PERMISSION_DENIED) std::cout << "PERMISSION DENIED!\n";
         return msg.opcode == DATA_UP;
     }
 
@@ -102,6 +104,7 @@ public:
         fclose(file);   
         recv(sock, &msg, sizeof(Message), 0);
         std::cout << "Server response: " << msg.opcode << std::endl;
+        if (msg.opcode == PERMISSION_DENIED) std::cout << "PERMISSION DENIED!\n";
         return msg.opcode == DOWNLOAD_SUCCESS;
     }
 };

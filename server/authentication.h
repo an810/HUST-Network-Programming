@@ -110,7 +110,7 @@ public:
         file.close();
     }
 
-    static void handleLogin(int sock, Message& msg, std::vector<Account>& accounts) {
+    static void handleLogin(int sock, Message& msg, std::vector<Account>& accounts, ClientInfo& client) {
         char username[25], password[25];
         sscanf(msg.payload, "%s %s", username, password);
 
@@ -121,6 +121,7 @@ public:
             if (strcmp(acc.user, username) == 0) {
                 if (strcmp(acc.pass, password) == 0) {
                     msg.opcode = LOGIN_SUCCESS;
+                    strcpy(client.userId, acc.user);
                     strcpy(msg.payload, acc.id);
                     return;
                 } else {

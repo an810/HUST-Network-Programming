@@ -93,3 +93,10 @@
 26/12/24	22:34:10	New user registered - Username: anngu, ID: 0003	0003
 26/12/24	22:37:47	New user registered - Username: anngu, ID: 0003	0003
 26/12/24	22:39:00	New user registered - Username: anngu1, ID: 0004	0004
+26/12/24	23:09:27	Upload file 	admin
+26/12/24	23:09:46	Upload file 	admin
+26/12/24	23:10:10	Granted permission 7 to user khoaihps for path ./ServerData/.	admin
+26/12/24	23:11:18	Granted permission 7 to user anngu for path ./ServerData/.	admin
+26/12/24	23:13:24	Granted permission 7 to user anngu for path ./ServerData/.	admin
+26/12/24	23:21:32	Granted permission 7 to user anngu1 for path ./ServerData/.	admin
+26/12/24	23:26:48	Granted permission 7 to user anngu1 for path ./ServerData/.	admin

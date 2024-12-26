@@ -1,2 +1,3 @@
-./ServerData/f3 user1 7
-./ServerData/f2 user1 7
+./ServerData/ khoaihps 7
+./ServerData/. anngu 7
+./ServerData/. anngu1 7
