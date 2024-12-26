@@ -165,6 +165,7 @@ public:
                 // strcpy(msg.payload, entry->d_name);
                 std::cout << "Handle Folder Download - File: " << itemPath << std::endl;
                 // send filename to client
+                msg.opcode = DATA_DOWN;
                 send(client.socket, &msg, sizeof(msg), 0);
                 handleFileDownload(client, itemPath, msg);  // Handle file download
             }

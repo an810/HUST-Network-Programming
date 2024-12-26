@@ -63,155 +63,87 @@ public:
     }
 
     static bool downloadFolder(int sock, const char* folderPath) {
-        std::cout << "Downloading folder: " << folderPath << std::endl;
+        std::cout << "Start downloading folder: " << folderPath << std::endl;
         Message msg;
+
+        // Notify server to start downloading the folder
         msg.opcode = DOWNLOAD;
         strcpy(msg.payload, folderPath);
         send(sock, &msg, sizeof(Message), 0);
+
+        // Wait for server response
         recv(sock, &msg, sizeof(Message), 0);
-        std::cout << "Server response: " << msg.opcode << std::endl;
+        std::cout << "Start downloading folder - Server response: " << msg.opcode << " - " << msg.payload << std::endl;
+
         if (msg.opcode == FOLDER_NOT_FOUND) return false;
-        
+
         std::string fullPath(CLIENT_FOLDER);
         fullPath += "/";
         fullPath += folderPath;
-        
+
+        // Create the folder locally
         if (msg.opcode == CREATE_FOLDER) {
-            mkdir(fullPath.c_str(), 0777); // Create the folder on the client
+            mkdir(fullPath.c_str(), 0777);
+            std::cout << "Creating folder: " << fullPath << std::endl;
         }
 
-
-        // get filename from server
-        recv(sock, &msg, sizeof(Message), 0);
-        std::cout << "Received server response: " << msg.opcode << std::endl;
-       
-        std::cout << "Downloading file: " << msg.payload << std::endl;
-        std::string filePath = fullPath + "/" + msg.payload;
-
-        // get the file content
-        recv(sock, &msg, sizeof(Message), 0);
-       
-
-       
-        FILE* file = fopen(filePath.c_str(), "wb");
-        if (!file) return false;
-
-        std::cout << "Server response: " << msg.opcode << std::endl;
-        if (msg.opcode != DATA_DOWN) return false;
-
-        do {
-            std::cout << "Start write file" << std::endl;
-            fwrite(msg.payload, 1, msg.length, file);
-            if (msg.length < PAYLOAD_SIZE) break;
-        
-            msg.opcode = DATA_DOWN;
-            send(sock, &msg, sizeof(Message), 0);
+        while (true) {
             recv(sock, &msg, sizeof(Message), 0);
-        } while (msg.length > 0);
 
-        fclose(file);
+            std::cout << "Server response: " << msg.opcode << " - " << msg.payload << std::endl;
 
-        // Check for folder or file download
-        recv(sock, &msg, sizeof(Message), 0);
-        std::cout << "Download Folder - server response: " << msg.opcode << std::endl;
+            if (msg.opcode == DOWNLOAD_SUCCESS) {
+                std::cout << "Finished downloading folder: " << folderPath << std::endl;
+                break;  // Folder download complete
+            }
 
-        if (msg.opcode == CREATE_FOLDER) {
-            // Handle subfolder creation and download recursively
-            // mkdir((fullPath + "/" + msg.payload).c_str(), 0777);
-            std::cout << "Download Folder - subfolder name: " << msg.payload << std::endl;
-            std::string nextPath = std::string(folderPath) + "/" + msg.payload;
-            strcpy(msg.payload, nextPath.c_str());
-            downloadFolder(sock, msg.payload);
+            if (msg.opcode == FOLDER_NOT_FOUND || msg.opcode == FILE_NOT_FOUND) {
+                std::cout << "Folder/File not found: " << msg.payload << std::endl;
+                break;
+            }
+
+            if (msg.opcode == CREATE_FOLDER) {
+                // Handle subfolder
+                std::string subFolderPath = fullPath + "/" + msg.payload;
+                std::cout << "Creating subfolder: " << subFolderPath << std::endl;
+                mkdir(subFolderPath.c_str(), 0777);
+
+                // Recursively download the subfolder
+                fullPath += "/";
+                fullPath += msg.payload;
+                std::cout << "Download Folder - Subfolder: " << fullPath << std::endl;
+                // std::string nextPath = std::string(folderPath) + "/" + msg.payload;
+                // downloadFolder(sock, nextPath.c_str());
+            } else if (msg.opcode == DATA_DOWN) {
+                // Handle file download
+                
+                std::string filePath = fullPath + "/" + msg.payload;
+                std::cout << "Downloading file: " << filePath << std::endl;
+
+                // get the file content
+                recv(sock, &msg, sizeof(Message), 0);
+            
+                FILE* file = fopen(filePath.c_str(), "wb");
+                if (!file) return false;
+
+                std::cout << "Server response: " << msg.opcode << std::endl;
+                if (msg.opcode != DATA_DOWN) return false;
+
+                do {
+                    std::cout << "Start write file" << std::endl;
+                    fwrite(msg.payload, 1, msg.length, file);
+                    if (msg.length < PAYLOAD_SIZE) break;
+                
+                    msg.opcode = DATA_DOWN;
+                    send(sock, &msg, sizeof(Message), 0);
+                    recv(sock, &msg, sizeof(Message), 0);
+                } while (msg.length > 0);
+
+                fclose(file);
+            }
         }
-
         return true;
     }
-
-    // static bool downloadFolder(int sock, const char* folderPath) {
-    //     std::cout << "Downloading folder: " << folderPath << std::endl;
-    //     Message msg;
-
-    //     // Send initial request for the folder
-    //     msg.opcode = DOWNLOAD;
-    //     strcpy(msg.payload, folderPath);
-    //     send(sock, &msg, sizeof(Message), 0);
-
-    //     // Create the folder locally
-    //     recv(sock, &msg, sizeof(Message), 0);
-    //     if (msg.opcode == FOLDER_NOT_FOUND) {
-    //         std::cerr << "Folder not found: " << folderPath << std::endl;
-    //         return false;
-    //     }
-
-    //     std::string fullPath(CLIENT_FOLDER);
-    //     fullPath += "/";
-    //     fullPath += folderPath;
-
-    //     if (msg.opcode == CREATE_FOLDER) {
-    //         mkdir(fullPath.c_str(), 0777); // Create the folder locally
-    //     }
-
-    //     // Process folder contents
-    //     while (true) {
-    //         recv(sock, &msg, sizeof(Message), 0);
-    //         std::cout << "Server response: " << msg.opcode << std::endl;
-    //         if (msg.opcode == DOWNLOAD_SUCCESS) {
-    //             // End of folder contents
-    //             break;
-    //         }
-
-    //         std::string itemName = msg.payload;
-    //         std::string itemPath = fullPath + "/" + itemName;
-
-    //         if (msg.opcode == CREATE_FOLDER) {
-    //             // Handle subfolder
-    //             mkdir(itemPath.c_str(), 0777); // Create the subfolder locally
-    //             std::string nextFolderPath = std::string(folderPath) + "/" + itemName;
-
-    //             // Recursive call to download the subfolder
-    //             if (!downloadFolder(sock, nextFolderPath.c_str())) {
-    //                 std::cerr << "Failed to download subfolder: " << nextFolderPath << std::endl;
-    //                 return false;
-    //             }
-    //         } else if (msg.opcode == DATA_DOWN) {
-                
-    //             // get filename from server
-    //             recv(sock, &msg, sizeof(Message), 0);
-    //             std::cout << "Received server response: " << msg.opcode << std::endl;
-            
-    //             std::cout << "Downloading file: " << msg.payload << std::endl;
-    //             std::string filePath = fullPath + "/" + msg.payload;
-
-    //             // get the file content
-    //             recv(sock, &msg, sizeof(Message), 0);
-
-    //             // Handle file download
-    //             FILE* file = fopen(itemPath.c_str(), "wb");
-    //             if (!file) {
-    //                 std::cerr << "Failed to create file: " << itemPath << std::endl;
-    //                 return false;
-    //             }
-
-    //             // Receive file data
-    //             do {
-    //                 fwrite(msg.payload, 1, msg.length, file);
-    //                 if (msg.length < PAYLOAD_SIZE) break;
-
-    //                 msg.opcode = DATA_DOWN;
-    //                 send(sock, &msg, sizeof(Message), 0);
-    //                 recv(sock, &msg, sizeof(Message), 0);
-    //             } while (msg.length > 0);
-
-    //             fclose(file);
-    //         } else {
-    //             std::cerr << "Unexpected message opcode: " << msg.opcode << std::endl;
-    //             return false;
-    //         }
-    //     }
-
-    //     std::cout << "Completed downloading folder: " << folderPath << std::endl;
-    //     return true;
-    // }
 
 
 
