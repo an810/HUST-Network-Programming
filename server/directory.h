@@ -1,6 +1,7 @@
 #pragma once
 #include "resource.h"
 #include "file.h"
+#include "permission.h"
 
 class Directory {
 public:
@@ -50,6 +51,10 @@ public:
             // Normal directory change
             snprintf(newPath, sizeof(newPath), "%s/%s", client.currentDir, newDir.c_str());
             if (opendir(newPath)) {
+                if (!PermissionHandler::checkPermission(newPath, client.userId, READ)) {
+                    msg.opcode = PERMISSION_DENIED;
+                    return false;
+                }
                 strcpy(client.currentDir, newPath);
                 std::cout << "Change directory - Current directory: " << client.currentDir << std::endl;
                 msg.opcode = CHANGE_SUCCESS;
@@ -69,6 +74,11 @@ public:
     }
 
     static void createDirectory(ClientInfo& client, Message& msg) {
+        if (!PermissionHandler::checkPermission(client.currentDir, client.userId, WRITE)) {
+            msg.opcode = PERMISSION_DENIED;
+            return;
+        }
+
         char path[256];
         snprintf(path, sizeof(path), "%s/%s", client.currentDir, msg.payload);
         if (mkdir(path, 0777) == 0) {
@@ -81,6 +91,10 @@ public:
     }
 
     static void deleteDirectory(ClientInfo& client, Message& msg) {
+        if (!PermissionHandler::checkPermission(client.currentDir, client.userId, WRITE)) {
+            msg.opcode = PERMISSION_DENIED;
+            return;
+        }
         char path[256];
         snprintf(path, sizeof(path), "%s/%s", client.currentDir, msg.payload);
 

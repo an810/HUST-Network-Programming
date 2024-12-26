@@ -1,5 +1,6 @@
 #include "resource.h"
 #include "authentication.h"
+#include "permission.h"
 #include "directory.h"
 #include "file.h"
 
@@ -54,6 +55,7 @@ int main(int argc, char* argv[]) {
 
     mkdir(SERVER_FOLDER, 0777);
     Authentication::loadAccounts(accounts);
+	PermissionHandler::init();
 
     int serverSock = socket(AF_INET, SOCK_STREAM, 0);
     if (serverSock < 0) {

@@ -82,5 +82,22 @@ enum OpCodes {
     CREATE_FOLDER_SUCCESS = 140,
     DELETE_FOLDER_SUCCESS = 141,
     FOLDER_ALREADY_EXIST = 142,
-    FOLDER_NOT_FOUND = 143
+    FOLDER_NOT_FOUND = 143,
+
+    PERMISSION_DENIED = 150,
+    SET_PERMISSION = 45,
+    PERMISSION_SUCCESS = 151
+};
+
+enum PermissionType {
+    READ = 1,      // Quyền đọc file/folder
+    WRITE = 2,     // Quyền ghi/upload
+    EXECUTE = 4,   // Quyền thực thi/truy cập folder
+    FULL = 7       // Tất cả quyền
+};
+
+struct Permission {
+    char path[256];        // Đường dẫn folder/file
+    char userId[25];       // UserID được cấp quyền
+    int permissionType;    // Loại quyền (dùng PermissionType)
 };

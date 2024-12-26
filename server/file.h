@@ -221,21 +221,45 @@ public:
     static void handleFileTransfer(int sock, Message& msg, ClientInfo& client) {
         switch (msg.opcode) {
             case UPLOAD:
+                if (!PermissionHandler::checkPermission(client.currentDir, client.userId, WRITE)) {
+                    msg.opcode = PERMISSION_DENIED;
+                    return;
+                }
                 handleUpload(client, msg);
                 break;
             case DATA_UP:
+                if (!PermissionHandler::checkPermission(client.currentDir, client.userId, WRITE)) {
+                    msg.opcode = PERMISSION_DENIED;
+                    return;
+                }
                 handleDataUpload(client, msg);
                 break;
             case DOWNLOAD:
+                if (!PermissionHandler::checkPermission(client.currentDir, client.userId, READ)) {
+                    msg.opcode = PERMISSION_DENIED;
+                    return;
+                }
                 handleDownload(client, msg);
                 break;
             case DATA_DOWN:
+                if (!PermissionHandler::checkPermission(client.currentDir, client.userId, READ)) {
+                    msg.opcode = PERMISSION_DENIED;
+                    return;
+                }
                 handleDataDown(client, msg);
                 break;
             case DELETE_FILE:
+                if (!PermissionHandler::checkPermission(client.currentDir, client.userId, WRITE)) {
+                    msg.opcode = PERMISSION_DENIED;
+                    return;
+                }
                 handleDelete(client, msg);
                 break;
             case SEARCH_FILE:
+                if (!PermissionHandler::checkPermission(client.currentDir, client.userId, READ)) {
+                    msg.opcode = PERMISSION_DENIED;
+                    return;
+                }
                 handleSearchFile(client, msg);
                 break;
         }
